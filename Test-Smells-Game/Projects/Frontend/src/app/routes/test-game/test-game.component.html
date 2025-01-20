@@ -1,0 +1,89 @@
+<div class="multilevel-game-container">
+    <h1>Multi-Level Test</h1>
+    <h5>{{ 'Level' | translate }} {{ currentLevel }}  -  {{ 'Exercise' | translate }} {{ currentExerciseIndex +1 }}</h5>
+
+    <div *ngIf="exercises[currentExerciseIndex]; else noExercises"> 
+      
+      <div class="timer">
+        <p>{{ 'Remaining Time' | translate }}: {{ formatTime(timeLeft) }}</p>
+      </div> 
+
+      <div *ngIf="exercises[currentExerciseIndex]?.type === 'check-game'; else refactoringTemplate">
+        
+        
+        <h4>Check-Smell Game: {{ normalizeExerciseId(exercises[currentExerciseIndex]?.data?.exerciseId) || 'id non disponibile' }}</h4>
+        <div class="container">
+          <div>
+            <div class="card">
+              <div class="card-header">
+                {{ normalizeExerciseId(exercises[currentExerciseIndex]?.data?.exerciseId) || 'Esercizio'}}.java
+              </div>
+              <div class="card-body">
+                <h2>{{ 'Which is the smell present in the following method?' | translate }}</h2>
+                <app-codeeditor
+                  #testing
+                  [injectedCode]="exercises[currentExerciseIndex]?.data?.check_game_configuration?.questions[0]?.questionCode"
+                  [editable]="false"
+                ></app-codeeditor>
+              </div>
+              <div class="card-footer">
+                <ul class="list-group">
+                  <li
+                    *ngFor="let answer of exercises[currentExerciseIndex]?.data?.check_game_configuration?.questions[0]?.answers"
+                    class="list-group-item"
+                  >
+                    <mat-checkbox
+                      (change)="selectAnswer(answer.answerText)"
+                      [checked]="selectedAnswer === answer.answerText"
+                    >
+                      {{ answer.answerText }}
+                    </mat-checkbox>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div> 
+      </div>
+
+      <ng-template #refactoringTemplate>
+        <h4>Refactoring Game: {{ normalizeExerciseId(exercises[currentExerciseIndex]?.data?.exerciseId) }}</h4>
+        <app-refactoring-game-core 
+          #refactoringGameCore
+          *ngIf="exercises[currentExerciseIndex]?.data?.exerciseId" 
+          (exerciseCompleted)="handleRefactoringGameCompletion($event)"
+          [exerciseNameTest]="normalizeExerciseId(exercises[currentExerciseIndex]?.data?.exerciseId)"
+          [isMultiLevelGame]="isMultiLevelGame">
+        </app-refactoring-game-core>
+      </ng-template>
+
+      <div class="button-goup">
+        <button
+          class="btn btn-secondary"
+          (click)="previousExercise()"
+          [disabled]="currentExerciseIndex === 0">Back
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="nextExercise()"
+          >Next 
+        </button>
+        <button
+          class="btn btn-danget"
+          style="float: right;"
+          (click)="submitTest()">ConsegnaTest
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noExercises>
+      <div class="alert alert-info mt-3">
+        <p>{{'Loading exercises or no exercises available' | translate }}.</p>
+      </div>
+    </ng-template>
+
+    <div *ngIf="exercises.length === 0">
+      <p>{{ 'Loading exercises' | translate }}...</p>
+    </div>
+  </div>
+  

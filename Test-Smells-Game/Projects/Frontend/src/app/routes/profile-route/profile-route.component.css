@@ -60,3 +60,20 @@ body {
   justify-content: center;
   gap: 10px;
 }
+
+.history-link {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #ffffff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.history-link:hover {
+  background-color: #0056b3;
+}

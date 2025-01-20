@@ -45,6 +45,9 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TestGameComponent } from './routes/test-game/test-game.component';
+import { TestSummaryComponent } from './routes/test-summary/test-summary.component';
+import { TestHistoryComponent } from './routes/test-history/test-history.component';
 
 export function HttpLoaderFactory(http:HttpClient) {
   return new TranslateHttpLoader(http);
@@ -72,7 +75,10 @@ export function HttpLoaderFactory(http:HttpClient) {
     LogviewerComponent,
     LogelementComponent,
     AssignmentsListRoute,
-    AssignmentsCoreRouteComponent
+    AssignmentsCoreRouteComponent,
+    TestGameComponent,
+    TestSummaryComponent,
+    TestHistoryComponent
   ],
   imports: [
     BrowserModule,

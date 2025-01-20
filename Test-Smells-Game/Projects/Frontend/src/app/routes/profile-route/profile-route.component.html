@@ -9,5 +9,10 @@
       <img *ngIf="user.exp >= getBadgeValueKey(1)" [src]="getBadgeUrl(getBadgeValue(1))" alt="Silver Badge" style="width: 70px; height: 70px; margin: 5px;" title="{{ 'Badge obtained after completing' | translate }} {{ getBadgeValueKey(1) }} {{ 'exercises' | translate }}">
       <img *ngIf="user.exp >= getBadgeValueKey(2)" [src]="getBadgeUrl(getBadgeValue(2))" alt="Gold Badge" style="width: 70px; height: 70px; margin: 5px;" title="{{ 'Badge obtained after completing' | translate }} {{ getBadgeValueKey(2) }} {{ 'exercises' | translate }}">
     </div>
+
+    <button class="btn btn-primary history-link" routerLink="/test-history">
+      {{ 'View Test History' | translate }}
+    </button>
+
   </div>
 </div>

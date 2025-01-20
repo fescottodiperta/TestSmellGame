@@ -19,7 +19,7 @@
                 <mat-checkbox #checkbox
                               (click)="selectAnswer(option)"
                               (change)="changeCheckbox(checkbox)"
-                              [checked]="this.option.isChecked">
+                              [checked]="option.isChecked">
                   {{option.answerText}}
                 </mat-checkbox>
               </li>
@@ -53,7 +53,7 @@
               <li *ngFor="let option of question.answers" class="list-group-item">
                 <div style="background-color: green" *ngIf="option.isCorrect">
                   <mat-checkbox
-                    [checked]="this.option.isChecked"
+                    [checked]="option.isChecked"
                     disabled>
                     {{option.answerText}}
                   </mat-checkbox>
@@ -61,7 +61,7 @@
                 </div>
                 <div style="background-color: red" *ngIf="!option.isCorrect">
                   <mat-checkbox
-                    [checked]="this.option.isChecked"
+                    [checked]="option.isChecked"
                     disabled>
                     {{option.answerText}}
                   </mat-checkbox>

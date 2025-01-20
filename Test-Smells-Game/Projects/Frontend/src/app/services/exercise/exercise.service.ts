@@ -74,4 +74,10 @@ export class ExerciseService {
       return this.http.post(environment.exerciseServiceUrl + '/files/log-event', eventLog, { responseType: 'json' });
     }
 
+
+    // Recupera esercizi casuali di uno specifico livello (multi-level/{level})
+  getExercisesByLevel(level: number, count: number = 5): Observable<any> {
+    return this.http.get<any>(environment.exerciseServiceUrl + `/files/multi-level/${level}?count=${count}`);
+  }
+
 }

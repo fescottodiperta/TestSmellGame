@@ -1,4 +1,4 @@
-import { Component, HostListener, NgZone, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, HostListener, NgZone, OnInit, ViewChild, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { CodeeditorService } from "../../../services/codeeditor/codeeditor.service";
 import { ExerciseService } from 'src/app/services/exercise/exercise.service';
 import { ActivatedRoute } from '@angular/router';
@@ -22,9 +22,13 @@ export class RefactoringGameCoreRouteComponent implements OnInit, OnDestroy {
   @ViewChild('testing') testing: any;
   @ViewChild('output') output: any;
 
+  @Input() exerciseNameTest!: string;
+  @Input() isMultiLevelGame: boolean = false;
+  @Output() exerciseCompleted = new EventEmitter<any>();
+
   compiledExercise !: Exercise;
   user!: User;
-  exerciseName = this.route.snapshot.params['exercise'];
+  exerciseName = this.exerciseNameTest ? this.exerciseNameTest : this.route.snapshot.params['exercise'];
 
   progressBarMode: ProgressBarMode = 'determinate'
 
@@ -66,6 +70,8 @@ export class RefactoringGameCoreRouteComponent implements OnInit, OnDestroy {
     ) { this.restoreCode(); }
 
   ngOnInit(): void {
+    this.exerciseName = this.exerciseNameTest || this.route.snapshot.params['exercise'];
+
     this.initSmellDescriptions();
 
       // INIT CODE FROM CLOUD
@@ -274,5 +280,26 @@ export class RefactoringGameCoreRouteComponent implements OnInit, OnDestroy {
       default:
         return 19;
     }
+  }
+
+
+  completeExercise(): void {
+    console.log('Refactoring Game completato con i seguenti dati:');
+    console.log({
+      refactoringResult: this.refactoringResult,
+      originalCoverage: this.originalCoverage,
+      refactoredCoverage: this.refactoredCoverage,
+      smellsAllowed: this.exerciseConfiguration.refactoring_game_configuration.smells_allowed,
+      smellNumber: this.smellNumber
+    });
+  
+    // Emissione dei dati al componente padre
+    this.exerciseCompleted.emit({
+      refactoringResult: this.refactoringResult,
+      originalCoverage: this.originalCoverage,
+      refactoredCoverage: this.refactoredCoverage,
+      smellsAllowed: this.exerciseConfiguration.refactoring_game_configuration.smells_allowed,
+      smellNumber: this.smellNumber
+    });
   }
 }

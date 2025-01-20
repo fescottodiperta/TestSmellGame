@@ -15,6 +15,10 @@ import {HomeRouteComponent} from "./routes/home-route/home-route.component";
 import {AssignmentsListRoute} from "./routes/assignments/assignments-list/assignments-list-route";
 import {AssignmentsCoreRouteComponent} from "./routes/assignments/assignments-core/assignments-core-route.component";
 import {ProfileRouteComponent} from "./routes/profile-route/profile-route.component";
+import { TestGameComponent } from './routes/test-game/test-game.component';
+import { TestHistoryComponent } from './routes/test-history/test-history.component';
+import { TestSummaryComponent } from './routes/test-summary/test-summary.component';
+
 
 const appRoutes: Routes = [
   { path: 'auth', component: AuthComponent },
@@ -23,6 +27,9 @@ const appRoutes: Routes = [
   { path: 'check-game', component: CheckGameExListRoute},
   { path: 'refactor-game/:exercise', component: RefactoringGameCoreRouteComponent},
   { path: 'check-game/:exercise', component: CheckGameCoreRouteComponent},
+  { path: 'test-game', component: TestGameComponent },
+  { path: 'test-summary', component: TestSummaryComponent },
+  { path: 'test-history', component: TestHistoryComponent },
   { path: 'refactor-game/leaderboard/:exercise', component: LeaderboardRouteComponent},
   { path: 'assignments/leaderboard/:exercise', component: LeaderboardRouteComponent},
   { path: 'assignments', component: AssignmentsListRoute},
