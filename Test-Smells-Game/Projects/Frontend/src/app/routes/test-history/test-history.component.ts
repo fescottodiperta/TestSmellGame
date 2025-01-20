@@ -4,6 +4,9 @@ import { HttpClient } from '@angular/common/http';
 import { TestService } from 'src/app/services/test/test.service.spec';
 import { User } from 'src/app/model/user/user.model';
 import { UserService } from 'src/app/services/user/user.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
+
 
 @Component({
   selector: 'app-test-history',
@@ -16,7 +19,13 @@ export class TestHistoryComponent implements OnInit {
   user!: User;
   
 
-  constructor(private http: HttpClient, private testService: TestService, private userService: UserService) {}
+  constructor(
+    private http: HttpClient,
+    private testService: TestService,
+    private userService: UserService,
+    private snackBar: MatSnackBar,
+    private translate: TranslateService
+  ) {}
 
 
   ngOnInit(): void {
@@ -25,15 +34,25 @@ export class TestHistoryComponent implements OnInit {
   }
 
   loadTestHistory(): void {
-    this.testHistory = this.testService.loadLocalTestHistory();
+    //this.testHistory = this.testService.loadLocalTestHistory();
 
     this.userService.getCurrentUser().subscribe((user: User | any) => {
       this.user = user;
   });
-    //Caricamento da backend, se necessario
+
+    //Caricamento da backend con filtro duplicati
     this.testService.loadTestHistoryFromServer(this.user.userId).subscribe({
       next: (data: any) => {
-      this.testHistory = [...this.testHistory, ...data];
+        const combinedHistory = [...this.testHistory, ...data];
+        this.testHistory = combinedHistory.filter(
+          (value, index, self) =>
+            index === self.findIndex(
+              (t) =>
+                t.date === value.date &&
+                t.completionTime === value.completionTime &&
+                t.refactoringScore === value.refactoringScore
+            )
+        );
       console.log('Stroico test caricato sal server:', data);
       },
       error: (error) => {
@@ -41,6 +60,7 @@ export class TestHistoryComponent implements OnInit {
       }
     });
   }
+  
 
   renderScoreChart(): void {
     const canvas = document.getElementById('scoreChart') as HTMLCanvasElement;
@@ -60,7 +80,7 @@ export class TestHistoryComponent implements OnInit {
         labels: dates,
         datasets: [
           {
-            label: 'Punteggio Totale',
+            label: 'Total Score',
             data: scores,
             borderColor: 'rgba(75, 192, 192, 1)',
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -94,31 +114,36 @@ export class TestHistoryComponent implements OnInit {
     });
   }
 
+
   removeTest(index: number): void {
     this.testService.removeLocalTest(index);
     this.testHistory.splice(index, 1);
-    //this.renderScoreChart(); // Aggiorna grafico dopo rimozione
+    //this.renderScoreChart();
 
   }
 
+
   clearTestHistory(): void {
     localStorage.removeItem('testHistory');
-    this.testHistory = []; // Resetta la lista
+    this.testHistory = [];
     if (this.scoreChart) {
-      this.scoreChart.destroy(); // Distruggi il grafico se esiste
+      this.scoreChart.destroy();
     }
     console.log('Storico dei test eliminato.');
   }
 
+
   deleteHistory() {
-    const userConfirmed = confirm('Vuoi eliminare la cronologia anche dal server?');
+    const message = this.translate.currentLang == 'it' ? 'Vuoi eliminare la cronologia anche dal server?' : 'Do you also want to delete the history from the server?'
+    const userConfirmed = confirm(message);
     if (userConfirmed) {
       this.userService.getCurrentUser().subscribe((user: User | any) => {
         this.user = user;
       });
       this.testService.removeTestFromServer(this.user.userId).subscribe(
         () => {
-          alert('Cronologia eliminata con successo.');
+          const message = this.translate.currentLang == 'it' ? 'Cronologia eliminata con successo.' : 'History successfully deleted.'
+          this.showNotification(message);
         },
         (error) => {
           alert('Si è verificato un errore durante l\'eliminazione della cronologia: ' + error.message);
@@ -126,6 +151,15 @@ export class TestHistoryComponent implements OnInit {
       );
     }
   }
+
+  showNotification(message: string, action: string = 'Close') {
+    this.snackBar.open(message, action, {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  } 
+  
   
 
 }

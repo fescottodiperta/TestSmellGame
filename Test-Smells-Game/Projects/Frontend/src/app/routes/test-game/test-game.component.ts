@@ -4,6 +4,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { TestService } from 'src/app/services/test/test.service.spec';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 @Component({
@@ -32,24 +33,24 @@ export class TestGameComponent implements OnInit {
     type: 'check-game' | 'refactoring-game';
     level: number;
     data: {
-        refactoringResult?: boolean; // Solo per refactoring-game
-        originalCoverage?: number;  // Solo per refactoring-game
-        refactoredCoverage?: number; // Solo per refactoring-game
-        smellsAllowed?: number; // Solo per refactoring-game
-        smellNumber?: number; // Solo per refactoring-game
+        refactoringResult?: boolean; 
+        originalCoverage?: number;  
+        refactoredCoverage?: number;
+        smellsAllowed?: number;
+        smellNumber?: number;
     };
   }> = [];
 
-  refactoringResult: boolean = false; // Esito del refactoring
-  originalCoverage: number = 0; // Copertura originale
-  refactoredCoverage: number = 0; // Copertura dopo il refactoring
-  smellsAllowed: number = 0; // Numero massimo di odori permessi
-  smellNumber: number = 0; // Numero di odori rimasti
+  refactoringResult: boolean = false; 
+  originalCoverage: number = 0;
+  refactoredCoverage: number = 0;
+  smellsAllowed: number = 0;
+  smellNumber: number = 0;
 
 
 
-  startTime!: Date; // Inizializzazione del tempo di inizio
-  timeLeft: number = 600; // Tempo rimanente in secondi (10 minuti)
+  startTime!: Date; 
+  timeLeft: number = 600; // Tempo rimanente
   timer!: any;
 
 
@@ -58,7 +59,8 @@ export class TestGameComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private testSummaryService: TestService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private snackBar: MatSnackBar
   ){}
 
   ngOnInit(): void {
@@ -66,23 +68,24 @@ export class TestGameComponent implements OnInit {
    
     this.startTime = new Date();
     const savedState = localStorage.getItem('multiGameTestState');
-  if (savedState) {
-    const testState = JSON.parse(savedState);
+    if (savedState) {
+      const testState = JSON.parse(savedState);
 
-    const message = this.translate.currentLang === 'it' ? 'Hai un test in corso. Vuoi riprendere da dove hai lasciato?' : 'You have a test in progress. Do you want to resume where you left off?'
-    const resume = confirm(message);
+      const message = this.translate.currentLang === 'it' ? 'Hai un test in corso. Vuoi riprendere da dove hai lasciato?' : 'You have a test in progress. Do you want to resume where you left off?'
+      const resume = confirm(message);
 
-    if (resume) {
-      this.loadSavedState(testState);
+      if (resume) {
+        this.loadSavedState(testState);
+      } else {
+        this.startNewTest();
+      }
     } else {
       this.startNewTest();
     }
-  } else {
-    this.startNewTest();
-  }
-    //this.loadExercisesByLevel(this.currentLevel);
     this.startTimer();
  }
+
+ 
 
   loadSavedState(testState: any): void {
     this.currentExerciseIndex = testState.currentExerciseIndex;
@@ -91,10 +94,11 @@ export class TestGameComponent implements OnInit {
     this.wrongAnswersList = testState.wrongAnswersList;
     this.completedExercisesList = testState.completedExercises;
     this.exercises = testState.exercises;
-    this.timeLeft = testState.timeLeft || 600; // Ripristina il tempo rimanente, default a 600 secondi
+    this.timeLeft = testState.timeLeft || 600;
 
     console.log('Test ripreso con stato:', testState);
   }
+
   
   startNewTest(): void {
     localStorage.removeItem('multiGameTestState');
@@ -119,7 +123,7 @@ export class TestGameComponent implements OnInit {
           }
 
           this.exercises = data;
-          this.filterExercisesByTypeRandom(2, 1);
+          this.filterExercisesByTypeRandom(2, 2);
           this.currentExerciseIndex = 0;
 
           resolve();
@@ -133,12 +137,14 @@ export class TestGameComponent implements OnInit {
     });
   }
 
+
+
   normalizeExerciseId(exerciseId: string): string {
     return exerciseId.replace(/_\d+$/, "");
   }
   
 
-  filterExercisesByTypeRandom(checkCount: number = 2, refactoringCount: number = 1): void {
+  filterExercisesByTypeRandom(checkCount: number = 2, refactoringCount: number = 2): void {
     const shuffledExercises = this.exercises.sort(() => Math.random() - 0.5);
 
     const checkGameExercises = shuffledExercises.filter((exercise) => !!exercise.check_game_configuration);
@@ -157,13 +163,11 @@ export class TestGameComponent implements OnInit {
     this.exercises = [...selectedCheckGameExercises, ...selectedRefactoringExercises];
     this.exercises = this.exercises.sort(() => Math.random() - 0.5);
     this.currentExerciseIndex = 0;
-
-    console.log('exercizi filtrati', this.exercises);
   }
+
 
   
    nextExercise(): void {
-    console.log('entro in nextExercise');
     this.saveCurrentState();
 
     if (this.currentExerciseIndex < this.exercises.length - 1){
@@ -174,27 +178,26 @@ export class TestGameComponent implements OnInit {
 
       const currentExercise = this.exercises[this.currentExerciseIndex];
 
-    if (!currentExercise?.type) {
-      console.error('Tipo di esercizio non valido.');
-      return;
-    }
+      if (!currentExercise?.type) {
+        console.error('Tipo di esercizio non valido.');
+        return;
+      }
 
-    this.cdr.detectChanges();
-
-    } else {
-      if (this.currentLevel >= 3) {
-      alert('Hai completato tutti i livelli del test!');
-      
-      //NUOVO
-      this.submitTest();
+      this.cdr.detectChanges();
 
     } else {
-      console.log('Hai completato tutti gli esercizi del livello! Passando al livello successivo...');
-      this.currentLevel++;
-      this.loadExercisesByLevel(this.currentLevel);
-    }
+        
+        if (this.currentLevel >= 3) {
+          this.showNotification('Hai completato tutti i livelli del test!');
+          this.submitTest();
+        } else {
+            this.currentLevel++;
+            this.loadExercisesByLevel(this.currentLevel);
+        }
     }
   }
+
+
 
   selectAnswer(answer: string): void {
     this.selectedAnswer = answer;
@@ -227,6 +230,7 @@ export class TestGameComponent implements OnInit {
   }
 
   
+
   previousExercise(): void {
     if (this.currentExerciseIndex > 0) {
       this.saveCurrentState();
@@ -240,7 +244,6 @@ export class TestGameComponent implements OnInit {
           this.refactoringGameCore.loadCode();
         }
       }    
-      console.log('Indice aggiornato:', this.currentExerciseIndex);
     } else {
       console.log('Nessun esercizio precedente.');
     }
@@ -248,12 +251,11 @@ export class TestGameComponent implements OnInit {
   
 
   submitTest(): void {
-    alert('Test consegnato! Grazie per aver completato il Multi-Level Game.');
-    // Puoi aggiungere ulteriori logiche qui, come salvare i risultati sul server.
+    this.showNotification('Test consegnato! Grazie per aver completato il Multi-Level Game.');
 
     const endTime = new Date();
-    const elapsedTime = Math.floor((endTime.getTime() - this.startTime.getTime()) / 1000); // Tempo trascorso in secondi
-    const remainingTime = 600 - elapsedTime; // Puoi scegliere di usare elapsedTime o totalTestTime
+    const elapsedTime = Math.floor((endTime.getTime() - this.startTime.getTime()) / 1000);
+    const remainingTime = 600 - elapsedTime;
 
     const formattedTime = remainingTime > 0 ? remainingTime : 0;
 
@@ -284,7 +286,7 @@ export class TestGameComponent implements OnInit {
       //codice modificato
       refactorCode: localStorage.getItem(`refactoring-game-${this.exercises[this.currentExerciseIndex]?.data?.exerciseId}`)
     };
-    console.log('stato salvato per:', this.currentExerciseIndex, this.exerciseStates[this.currentExerciseIndex]);
+    //console.log('stato salvato per:', this.currentExerciseIndex, this.exerciseStates[this.currentExerciseIndex]);
 
     const testState = {
       currentExerciseIndex: this.currentExerciseIndex,
@@ -293,7 +295,7 @@ export class TestGameComponent implements OnInit {
       wrongAnswersList: this.wrongAnswersList,
       completedExercisesList: this.completedExercisesList,
       exercises: this.exercises,
-      timeLeft: this.timeLeft, // Ripristina il tempo rimanente, default a 600 secondi
+      timeLeft: this.timeLeft,
       startTime: this.startTime.toISOString()
     };
 
@@ -328,40 +330,11 @@ formatTime(seconds: number): string {
 }
 
 ngOnDestroy(): void {
-  // Cancella il timer per evitare memory leaks
   if (this.timer) {
     clearInterval(this.timer);
   }
 }
 
-
-/*completeRefactoringExercise(data: any): void {
-    const currentExercise = this.exercises[this.currentExerciseIndex];
-    console.log('Esercizio Corrente:', currentExercise);
-  
-    if(currentExercise.type === 'refactoring-game' ){
-    // Dati specifici per ogni tipo di esercizio
-    const exerciseData = {
-      refactoringResult: this.refactoringResult,
-      originalCoverage: this.originalCoverage,
-      refactoredCoverage: this.refactoredCoverage,
-      smellsAllowed: this.smellsAllowed,
-      smellNumber: this.smellNumber
-    };
-  
-    // Aggiunta dell'esercizio completato
-    this.completedExercisesList.push({
-      exerciseId: currentExercise.exerciseId.data,
-      type: currentExercise.type,
-      level: this.currentLevel,
-      data: exerciseData
-    });
-  }
-  
-    console.log('Lista degli esercizi completati aggiornata:', this.completedExercisesList);
-    this.nextExercise(); // Passa all'esercizio successivo
-  }
-  */
 
 
   handleRefactoringGameCompletion(data: any): void {
@@ -379,7 +352,15 @@ ngOnDestroy(): void {
 
     this.nextExercise();
   }
-  
+
+
+  showNotification(message: string, action: string = 'Close') {
+    this.snackBar.open(message, action, {
+      duration: 3000, // Tempo in millisecondi
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  } 
   
 
 

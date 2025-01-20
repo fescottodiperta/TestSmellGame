@@ -88,7 +88,7 @@
           </div>
         </div>
         <button *ngIf="!isMultiLevelGame" type="button" class="btn btn-primary" routerLink="/refactor-game/leaderboard/{{exerciseName}}">{{ 'Solution Repository' | translate }}</button>
-        <button *ngIf="isMultiLevelGame" (click)="completeExercise()" class="btn btn-primary">{{ 'Completa' }}</button>
+        <button *ngIf="isMultiLevelGame" (click)="completeExercise()" class="btn btn-primary">{{ 'Complete' | translate }}</button>
       </div>
     </div>
 </div>

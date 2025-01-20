@@ -57,20 +57,23 @@
         </app-refactoring-game-core>
       </ng-template>
 
-      <div class="button-goup">
+      <div class="button-group" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+        <div style="display: flex; gap: 10px;"> 
+            <button
+              class="btn btn-secondary"
+              style="width: 150px;"
+              (click)="previousExercise()"
+              [disabled]="currentExerciseIndex === 0">Back
+            </button>
+            <button 
+              class="btn btn-primary" 
+              style="width: 150px;"
+              (click)="nextExercise()">Next 
+            </button>
+        </div>
         <button
-          class="btn btn-secondary"
-          (click)="previousExercise()"
-          [disabled]="currentExerciseIndex === 0">Back
-        </button>
-        <button 
-          class="btn btn-primary" 
-          (click)="nextExercise()"
-          >Next 
-        </button>
-        <button
-          class="btn btn-danget"
-          style="float: right;"
+          class="btn btn-danger"
+          style="width: 150px;"
           (click)="submitTest()">ConsegnaTest
         </button>
       </div>

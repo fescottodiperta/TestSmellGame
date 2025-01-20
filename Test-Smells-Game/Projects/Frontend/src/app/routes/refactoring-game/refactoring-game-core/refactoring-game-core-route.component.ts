@@ -1,4 +1,4 @@
-import { Component, HostListener, NgZone, OnInit, ViewChild, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
+import { Component, HostListener, NgZone, OnInit, ViewChild, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CodeeditorService } from "../../../services/codeeditor/codeeditor.service";
 import { ExerciseService } from 'src/app/services/exercise/exercise.service';
 import { ActivatedRoute } from '@angular/router';
@@ -10,6 +10,8 @@ import { SmellDescription } from "../../../model/SmellDescription/SmellDescripti
 import { User } from "../../../model/user/user.model";
 import { ExerciseConfiguration } from "../../../model/exercise/ExerciseConfiguration.model";
 import { UserService } from '../../../services/user/user.service';
+import { TranslateService } from '@ngx-translate/core';
+
 
 @Component({
   selector: 'app-refactoring-game-core',
@@ -66,7 +68,8 @@ export class RefactoringGameCoreRouteComponent implements OnInit, OnDestroy {
       private zone: NgZone,
       private leaderboardService: LeaderboardService,
       private _snackBar: MatSnackBar,
-      private userService: UserService
+      private userService: UserService,
+      private translate: TranslateService
     ) { this.restoreCode(); }
 
   ngOnInit(): void {
@@ -87,6 +90,38 @@ export class RefactoringGameCoreRouteComponent implements OnInit, OnDestroy {
         this.exerciseConfiguration = data;
         this.setupConfigFiles(data);})
     }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['exerciseNameTest'] && !changes['exerciseNameTest'].firstChange) {
+      console.log('Cambio rilevato per exerciseNameTest:', changes['exerciseNameTest']);
+      this.reloadExercise();
+    }
+  }
+
+  reloadExercise(): void {
+    this.exerciseName = this.exerciseNameTest
+    this.userCode = '';
+    this.testingCode = '';
+    this.shellCode = '';
+    this.exerciseSuccess = false;
+
+    this.initSmellDescriptions();
+
+      // INIT CODE FROM CLOUD
+      this.exerciseService.getMainClass(this.exerciseName).subscribe( data=> {
+        this.userCode = data;
+        this.originalProductionCode = data;
+      });
+      this.exerciseService.getTestClass(this.exerciseName).subscribe( data => {
+        this.testingCode = data
+        this.originalTestCode = data
+      })
+      this.exerciseService.getConfigFile(this.exerciseName).subscribe(data=>{
+        this.exerciseConfiguration = data;
+        this.setupConfigFiles(data);})
+
+    console.log('Stato del componente aggiornato!');
+  }
 
   @HostListener('window:beforeunload', ['$event'])
     unloadHandler(event: Event) {
@@ -301,5 +336,20 @@ export class RefactoringGameCoreRouteComponent implements OnInit, OnDestroy {
       smellsAllowed: this.exerciseConfiguration.refactoring_game_configuration.smells_allowed,
       smellNumber: this.smellNumber
     });
+
+    const message = this.translate.currentLang == 'it' ? 'Esercizio inviato' : 'Exercise submitted'
+    this.showNotification(message);  
   }
+
+
+  showNotification(message: string, action: string = 'Close') {
+    this._snackBar.open(message, action, {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom'
+    });
+  } 
+  
+
+
 }
